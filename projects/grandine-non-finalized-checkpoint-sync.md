@@ -8,9 +8,7 @@ Grandine currently supports checkpoint sync only from finalized checkpoints. Und
 
 However, during an extended period of non-finality, the latest finalized checkpoint may become significantly older than the current wall-clock head. A newly started node would still have to begin from that old finalized checkpoint and process the full non-finalized range before catching up.
 
-Supporting startup from a trusted non-finalized checkpoint closer to the current head could improve recovery and bootstrap time during these incidents.
-
-The project affects the consensus client’s:
+Supporting startup from a trusted non-finalized checkpoint closer to the current head could improve recovery and bootstrap time during these incidents. The project affects the consensus client’s:
 
 - checkpoint loading;
 - startup and state initialization;
@@ -23,9 +21,7 @@ The project affects the consensus client’s:
 
 ## Project description
 
-This project will investigate and implement support for starting Grandine from an operator-supplied trusted non-finalized checkpoint.
-
-The work will follow an implementation-first approach. Rather than treating the current design ideas as fixed, I will begin with a small implementation spike, observe where Grandine’s finalized-checkpoint assumptions prevent startup or syncing, and shape the final design from those findings.
+This project will investigate and implement support for starting Grandine from an operator-supplied trusted non-finalized checkpoint. The work will follow an implementation-first approach. Rather than treating the current design ideas as fixed, I will begin with a small implementation spike, observe where Grandine’s finalized-checkpoint assumptions prevent startup or syncing, and shape the final design from those findings.
 
 The goal is to make the least invasive change that achieves the required functionality while preserving existing finalized checkpoint-sync behaviour. A likely requirement is to distinguish between:
 
