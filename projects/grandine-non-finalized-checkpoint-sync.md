@@ -8,27 +8,31 @@ Grandine currently supports checkpoint sync only from finalized checkpoints. Und
 
 However, during an extended period of non-finality, the latest finalized checkpoint may become significantly older than the current wall-clock head. A newly started node would still have to begin from that old finalized checkpoint and process the full non-finalized range before catching up.
 
-Supporting startup from a trusted non-finalized checkpoint closer to the current head could improve recovery and bootstrap time during these incidents. The project affects the consensus client’s:
+Supporting startup from a trusted non-finalized checkpoint closer to the current head could improve recovery and bootstrap time during prolonged non-finality.
 
-- checkpoint loading;
-- startup and state initialization;
-- fork-choice initialization;
-- sync boundaries;
-- P2P finality reporting;
-- storage and restart behaviour.
-
-> Grandine was designed around the assumption that the startup checkpoint is finalized. The main challenge is therefore identifying which parts of the client rely on that assumption and making only the changes required to support a non-finalized startup point safely.
+This is a specialized recovery and testing feature rather than a replacement for normal finalized checkpoint sync. The beacon chain and Grandine’s current architecture are built around finalized checkpoints, so the new path would mainly be useful during exceptional failure scenarios, client testing, and non-finality recovery experiments.
 
 ## Project description
 
-This project will investigate and implement support for starting Grandine from an operator-supplied trusted non-finalized checkpoint. The work will follow an implementation-first approach. Rather than treating the current design ideas as fixed, I will begin with a small implementation spike, observe where Grandine’s finalized-checkpoint assumptions prevent startup or syncing, and shape the final design from those findings.
+This project will investigate and implement support for starting Grandine from an operator-supplied trusted non-finalized checkpoint.
 
-The goal is to make the least invasive change that achieves the required functionality while preserving existing finalized checkpoint-sync behaviour. A likely requirement is to distinguish between:
+This is intended as a specialized recovery and testing path for prolonged non-finality scenarios. Finalized checkpoint sync will remain the normal and default startup method.
 
-- a trusted local startup anchor used for rollback protection and sync boundaries; and
-- the real on-chain finalized and justified checkpoints used for consensus behaviour.
+Because Grandine and the beacon chain are designed around finalized checkpoint startup, the implementation may affect several parts of the client, including:
 
-The exact types, abstractions, and component boundaries will be determined through implementation and feedback from the Grandine team. The work will be submitted as small, reviewable pull requests rather than as one large architectural change.
+- checkpoint loading and validation;
+- startup and state initialization;
+- fork-choice initialization;
+- forward-sync boundaries;
+- P2P finality reporting;
+- storage and restart behaviour;
+- block ancestry and rollback checks.
+
+The work will follow an implementation-first approach. Rather than treating the current design ideas as fixed, I will begin with a small implementation spike, identify where finalized-checkpoint assumptions prevent startup or syncing, and shape the final design based on those findings.
+
+The goal is to make the least invasive change that achieves the required functionality while preserving the existing finalized checkpoint-sync path.
+
+> This feature introduces an explicit trust assumption: the operator is responsible for selecting a reliable non-finalized checkpoint source.
 
 ## Specification
 
@@ -220,9 +224,12 @@ A trusted non-finalized checkpoint may need to survive restart without being per
 
 Back-sync from a non-finalized point may require additional trust and state-availability rules. It may need to remain outside the initial scope.
 
-### Checkpoint trust
-
-A non-finalized checkpoint cannot be proven canonical from protocol rules alone. The node operator must explicitly trust the checkpoint source.
+> [!WARNING]
+> A non-finalized checkpoint is an explicitly trusted local input. Unlike a finalized checkpoint, it cannot be established as canonical by protocol finality alone.
+>
+> Operators using this feature must trust the checkpoint source and understand that selecting an incorrect or conflicting checkpoint may cause the node to follow the wrong chain.
+>
+> This feature is intended for controlled recovery, testing, and exceptional non-finality scenarios—not as the default checkpoint-sync mode.
 
 ### Testing non-finality scenarios
 
